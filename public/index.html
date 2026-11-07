@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>InstaBox Controller</title>
+  <meta name="theme-color" content="#09090b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.08); }
+    }
+    .animate-pulse-slow {
+      animation: pulse-slow 2.5s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col items-center justify-between p-5 font-sans antialiased select-none">
+
+  <!-- Header -->
+  <header class="w-full max-w-sm flex justify-between items-center pt-2">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center font-black text-black text-lg shadow-lg shadow-orange-500/20">
+        IB
+      </div>
+      <div>
+        <h1 class="font-bold text-base tracking-tight leading-none text-white">InstaBox Remote</h1>
+        <p class="text-xs text-zinc-500 font-mono mt-0.5" id="machineNameText">openclaw (m_agqyd...)</p>
+      </div>
+    </div>
+    <button onclick="fetchStatus()" id="reloadBtn" class="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white active:scale-90 transition">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+    </button>
+  </header>
+
+  <!-- Main Center Card -->
+  <main class="w-full max-w-sm flex flex-col items-center my-auto py-6">
+    
+    <!-- Status Indicator -->
+    <div class="flex flex-col items-center gap-3 mb-8">
+      <div id="statusPulseRing" class="relative flex items-center justify-center w-28 h-28 rounded-full border border-zinc-800 bg-zinc-900/60 shadow-inner">
+        <div id="statusDotGlow" class="absolute inset-0 rounded-full bg-amber-500/10 animate-pulse-slow"></div>
+        <div id="statusIcon" class="text-3xl">⏳</div>
+      </div>
+      
+      <div class="text-center">
+        <div id="statusBadge" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase border border-amber-500/30 bg-amber-500/10 text-amber-400">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span id="statusText">CHECKING...</span>
+        </div>
+        <p class="text-[11px] text-zinc-500 font-mono mt-2" id="lastUpdatedText">Menghubungkan ke server...</p>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="w-full flex flex-col gap-3.5">
+      <!-- Big Wake Button -->
+      <button onclick="wakeServer()" id="wakeBtn" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-bold text-base shadow-xl shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-2.5">
+        <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/></svg>
+        <span id="wakeBtnText">BANGUNKAN SERVER</span>
+      </button>
+
+      <!-- Pause Button -->
+      <button onclick="pauseServer()" id="pauseBtn" class="w-full py-3.5 px-6 rounded-2xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-semibold text-xs active:scale-95 transition flex items-center justify-center gap-2">
+        <svg class="w-4 h-4 text-zinc-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        <span>TIDURKAN (PAUSE) MANUAL</span>
+      </button>
+    </div>
+
+    <!-- Quick Info Cards -->
+    <div class="w-full grid grid-cols-2 gap-2.5 mt-6">
+      <div onclick="copyRustdesk()" class="p-3.5 rounded-xl bg-zinc-900/70 border border-zinc-800/80 active:bg-zinc-800 transition cursor-pointer">
+        <span class="text-[10px] text-zinc-500 block uppercase font-mono">RustDesk ID</span>
+        <span class="text-xs font-semibold text-zinc-200 mt-0.5 flex items-center justify-between font-mono">
+          117379296
+          <svg class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        </span>
+      </div>
+      <div class="p-3.5 rounded-xl bg-zinc-900/70 border border-zinc-800/80">
+        <span class="text-[10px] text-zinc-500 block uppercase font-mono">RustDesk Pass</span>
+        <span class="text-xs font-semibold text-zinc-200 mt-0.5 font-mono">123456</span>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer Notice -->
+  <footer class="w-full max-w-sm text-center py-2">
+    <div id="toastMessage" class="hidden text-xs py-2 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-medium mb-3"></div>
+    <p class="text-[11px] text-zinc-600">
+      Auto-refresh setiap 5s · Tambah ke Home Screen HP biar jadi App
+    </p>
+  </footer>
+
+  <script>
+    let pollInterval = null;
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        
+        if (data.error) {
+          showStatus('error', 'API ERROR');
+          return;
+        }
+
+        const state = (data.state || data.desiredState || 'unknown').toLowerCase();
+        if (data.name) {
+          document.getElementById('machineNameText').innerText = `${data.name} (${data.id.slice(0, 10)}...)`;
+        }
+
+        if (state === 'running') {
+          showStatus('running', 'RUNNING (AKTIF)');
+        } else if (state === 'suspended') {
+          showStatus('suspended', 'PAUSED (TIDUR)');
+        } else {
+          showStatus('stopped', state.toUpperCase());
+        }
+
+        const now = new Date();
+        document.getElementById('lastUpdatedText').innerText = 'Update: ' + now.toLocaleTimeString();
+      } catch (err) {
+        showStatus('error', 'OFFLINE');
+      }
+    }
+
+    function showStatus(type, label) {
+      const badge = document.getElementById('statusBadge');
+      const text = document.getElementById('statusText');
+      const icon = document.getElementById('statusIcon');
+      const glow = document.getElementById('statusDotGlow');
+
+      text.innerText = label;
+
+      if (type === 'running') {
+        badge.className = 'inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase border border-emerald-500/30 bg-emerald-500/10 text-emerald-400';
+        badge.children[0].className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+        glow.className = 'absolute inset-0 rounded-full bg-emerald-500/10 animate-pulse-slow';
+        icon.innerText = '⚡';
+      } else if (type === 'suspended') {
+        badge.className = 'inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase border border-amber-500/30 bg-amber-500/10 text-amber-400';
+        badge.children[0].className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+        glow.className = 'absolute inset-0 rounded-full bg-amber-500/10 animate-pulse-slow';
+        icon.innerText = '💤';
+      } else {
+        badge.className = 'inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase border border-zinc-700 bg-zinc-800 text-zinc-400';
+        badge.children[0].className = 'w-2 h-2 rounded-full bg-zinc-500';
+        glow.className = 'absolute inset-0 rounded-full bg-zinc-800/20';
+        icon.innerText = '⏹️';
+      }
+    }
+
+    async function wakeServer() {
+      vibrate();
+      const btn = document.getElementById('wakeBtn');
+      const text = document.getElementById('wakeBtnText');
+      btn.disabled = true;
+      text.innerText = 'MEMBANGUNKAN...';
+
+      try {
+        const res = await fetch('/api/start', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        showToast('Perintah bangun dikirim! Menunggu server siap...');
+        
+        // Fast polling for 10 seconds
+        let attempts = 0;
+        const checkFast = setInterval(async () => {
+          attempts++;
+          await fetchStatus();
+          const currentText = document.getElementById('statusText').innerText;
+          if (currentText.includes('RUNNING') || attempts > 10) {
+            clearInterval(checkFast);
+            btn.disabled = false;
+            text.innerText = 'BANGUNKAN SERVER';
+          }
+        }, 1500);
+      } catch (err) {
+        showToast('Gagal mengirim perintah');
+        btn.disabled = false;
+        text.innerText = 'BANGUNKAN SERVER';
+      }
+    }
+
+    async function pauseServer() {
+      vibrate();
+      const btn = document.getElementById('pauseBtn');
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/stop', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        showToast('Server dimatikan (Paused).');
+        setTimeout(() => {
+          fetchStatus();
+          btn.disabled = false;
+        }, 2000);
+      } catch (err) {
+        showToast('Gagal mematikan server');
+        btn.disabled = false;
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastMessage');
+      toast.innerText = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 4000);
+    }
+
+    function copyRustdesk() {
+      vibrate();
+      navigator.clipboard.writeText('117379296');
+      showToast('RustDesk ID (117379296) disalin!');
+    }
+
+    function vibrate() {
+      if ('vibrate' in navigator) navigator.vibrate(40);
+    }
+
+    // Initial fetch and auto-refresh
+    fetchStatus();
+    pollInterval = setInterval(fetchStatus, 5000);
+  </script>
+</body>
+</html>

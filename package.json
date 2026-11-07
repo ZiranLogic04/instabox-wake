@@ -1,0 +1,12 @@
+{
+  "name": "instabox-wake",
+  "version": "1.0.0",
+  "description": "One-click mobile wake-up web controller for InstaBox",
+  "main": "api/status.js",
+  "scripts": {
+    "start": "node -e \"console.log('Ready for Vercel deployment')\""
+  },
+  "keywords": ["instabox", "wake", "remote"],
+  "author": "ZiranLogic04",
+  "license": "MIT"
+}
